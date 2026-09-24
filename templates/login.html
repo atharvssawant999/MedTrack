@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Login - MedTrack</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f3f7fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 530px;
+            padding: 25px;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 20px;
+            padding: 55px 55px 45px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        .brand {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .brand-logo {
+            font-size: 42px;
+            margin-bottom: 8px;
+        }
+
+        .brand h1 {
+            margin: 0;
+            color: #117d75;
+            font-size: 40px;
+        }
+
+        .brand p {
+            margin-top: 10px;
+            color: #64748b;
+            font-size: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        input,
+        select {
+            width: 100%;
+            height: 58px;
+            padding: 0 17px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            background: white;
+            font-size: 16px;
+            outline: none;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: #117d75;
+            box-shadow: 0 0 0 3px rgba(17, 125, 117, 0.1);
+        }
+
+        .login-button {
+            width: 100%;
+            height: 58px;
+            border: none;
+            border-radius: 10px;
+            background: #117d75;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+
+        .login-button:hover {
+            background: #0e6d66;
+        }
+
+        .message {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 15px;
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 28px;
+            font-size: 17px;
+        }
+
+        .register-link a {
+            color: #117d75;
+            font-weight: 600;
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+            .login-container {
+                padding: 15px;
+            }
+
+            .login-card {
+                padding: 35px 25px;
+            }
+
+            .brand h1 {
+                font-size: 32px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="login-container">
+
+    <div class="login-card">
+
+        <div class="brand">
+            <div class="brand-logo">🩺</div>
+            <h1>MedTrack</h1>
+            <p>Login to your account</p>
+        </div>
+
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+
+                {% for category, message in messages %}
+                    <div class="message {{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+
+            {% endif %}
+        {% endwith %}
+
+
+        <!-- IMPORTANT: method POST and action /login -->
+        <form method="POST" action="{{ url_for('login') }}">
+
+            <div class="form-group">
+
+                <label for="email">
+                    Email
+                </label>
+
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="Enter your email"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="password">
+                    Password
+                </label>
+
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="Enter your password"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="role">
+                    Login As
+                </label>
+
+                <select
+                    id="role"
+                    name="role"
+                    required
+                >
+
+                    <option value="patient">
+                        Patient
+                    </option>
+
+                    <option value="doctor">
+                        Doctor
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="login-button"
+            >
+                Login
+            </button>
+
+        </form>
+
+
+        <div class="register-link">
+
+            Don't have an account?
+
+            <a href="{{ url_for('register') }}">
+                Register
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MedTrack - Healthcare Management</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f8fb;
+            color: #1f2937;
+        }
+
+        nav {
+            background: #0f766e;
+            color: white;
+            padding: 20px 8%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 26px;
+            font-weight: bold;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 25px;
+        }
+
+        .hero {
+            min-height: 75vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .hero-content {
+            max-width: 800px;
+        }
+
+        .hero h1 {
+            font-size: 52px;
+            margin-bottom: 20px;
+            color: #0f766e;
+        }
+
+        .hero h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .hero p {
+            font-size: 18px;
+            line-height: 1.7;
+            color: #64748b;
+            margin-bottom: 35px;
+        }
+
+        .buttons a {
+            display: inline-block;
+            padding: 14px 28px;
+            margin: 8px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .primary {
+            background: #0f766e;
+            color: white;
+        }
+
+        .secondary {
+            background: white;
+            color: #0f766e;
+            border: 2px solid #0f766e;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: #0f766e;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <div class="logo">🩺 MedTrack</div>
+
+        <div>
+            <a href="/">Home</a>
+            <a href="/login">Login</a>
+            <a href="/register">Register</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+
+        <div class="hero-content">
+
+            <h1>MedTrack</h1>
+
+            <h2>AWS Cloud-Enabled Healthcare Management System</h2>
+
+            <p>
+                A centralized healthcare platform designed to connect
+                patients and doctors, manage appointments, medical
+                records and diagnosis information securely.
+            </p>
+
+            <div class="buttons">
+                <a href="/login" class="primary">Login</a>
+                <a href="/register" class="secondary">Create Account</a>
+            </div>
+
+        </div>
+
+    </section>
+
+    <footer>
+        MedTrack © 2026 | Healthcare Management System
+    </footer>
+
+</body>
+</html>
