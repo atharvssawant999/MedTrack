@@ -1368,16 +1368,20 @@ def internal_server_error(error):
 
 
 # =========================================================
+# INITIALIZE DATABASE
+# =========================================================
+# This must run when Gunicorn/Render imports app.py.
+# Otherwise the SQLite tables do not exist on Render.
+
+init_database()
+migrate_old_users()
+
+
+# =========================================================
 # START APPLICATION
 # =========================================================
 
 if __name__ == "__main__":
-
-    # Create database tables
-    init_database()
-
-    # Migrate old users.json accounts
-    migrate_old_users()
 
     print("")
     print("========================================")
