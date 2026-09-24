@@ -1,164 +1,892 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Register - MedTrack</title>
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Create Account - MedTrack</title>
+
 
     <style>
+
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
         }
 
+
+        :root {
+
+            --bg: #07111f;
+
+            --panel: #0f1d30;
+
+            --primary: #14b8a6;
+
+            --primary-dark: #0d9488;
+
+            --blue: #38bdf8;
+
+            --text: #f8fafc;
+
+            --muted: #8ea0b7;
+
+            --border: rgba(148, 163, 184, 0.13);
+        }
+
+
         body {
-            font-family: Arial, sans-serif;
-            background: #f1f5f9;
+
             min-height: 100vh;
+
+            font-family:
+                Inter,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            background:
+
+                radial-gradient(
+                    circle at 10% 20%,
+                    rgba(20, 184, 166, 0.12),
+                    transparent 30%
+                ),
+
+                radial-gradient(
+                    circle at 90% 80%,
+                    rgba(56, 189, 248, 0.09),
+                    transparent 30%
+                ),
+
+                var(--bg);
+
+            color: var(--text);
+
             display: flex;
+
             align-items: center;
+
             justify-content: center;
+
             padding: 30px;
         }
 
-        .register-box {
-            background: white;
-            width: 450px;
-            padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+
+        /* =====================================
+           AUTH CONTAINER
+        ===================================== */
+
+        .auth-wrapper {
+
+            width: 100%;
+
+            max-width: 1050px;
+
+            min-height: 680px;
+
+            display: grid;
+
+            grid-template-columns: 1fr 1fr;
+
+            background:
+                rgba(15, 29, 48, 0.88);
+
+            border:
+
+                1px solid
+                var(--border);
+
+            border-radius: 26px;
+
+            overflow: hidden;
+
+            box-shadow:
+
+                0 30px 80px
+                rgba(0, 0, 0, 0.35);
+
+            backdrop-filter: blur(20px);
         }
 
+
+        /* =====================================
+           LEFT SIDE
+        ===================================== */
+
+        .brand-section {
+
+            position: relative;
+
+            padding: 55px;
+
+            display: flex;
+
+            align-items: center;
+
+            overflow: hidden;
+
+            background:
+
+                linear-gradient(
+                    145deg,
+                    #0b2633,
+                    #0b192b 65%,
+                    #091525
+                );
+        }
+
+
+        .brand-section::before {
+
+            content: "";
+
+            position: absolute;
+
+            width: 350px;
+            height: 350px;
+
+            border-radius: 50%;
+
+            background:
+                rgba(20, 184, 166, 0.10);
+
+            right: -180px;
+
+            top: -140px;
+
+            filter: blur(5px);
+        }
+
+
+        .brand-section::after {
+
+            content: "";
+
+            position: absolute;
+
+            width: 230px;
+            height: 230px;
+
+            border-radius: 50%;
+
+            background:
+                rgba(56, 189, 248, 0.06);
+
+            left: -120px;
+
+            bottom: -100px;
+        }
+
+
+        .brand-content {
+
+            position: relative;
+
+            z-index: 2;
+        }
+
+
         .logo {
-            text-align: center;
-            color: #0f766e;
-            font-size: 32px;
-            font-weight: bold;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            margin-bottom: 45px;
+        }
+
+
+        .logo-icon {
+
+            width: 48px;
+
+            height: 48px;
+
+            border-radius: 14px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            background:
+
+                linear-gradient(
+                    135deg,
+                    var(--primary),
+                    #0ea5e9
+                );
+
+            font-size: 25px;
+
+            box-shadow:
+
+                0 10px 30px
+                rgba(20, 184, 166, 0.25);
+        }
+
+
+        .logo-name {
+
+            font-size: 25px;
+
+            font-weight: 800;
+
+            letter-spacing: -0.7px;
+        }
+
+
+        .brand-section h1 {
+
+            max-width: 420px;
+
+            font-size: 38px;
+
+            line-height: 1.15;
+
+            letter-spacing: -1.2px;
+
+            margin-bottom: 20px;
+        }
+
+
+        .brand-section h1 span {
+
+            color: var(--primary);
+        }
+
+
+        .brand-description {
+
+            max-width: 410px;
+
+            color: #8ea4b9;
+
+            font-size: 14px;
+
+            line-height: 1.8;
+        }
+
+
+        .secure-box {
+
+            margin-top: 35px;
+
+            padding: 16px;
+
+            max-width: 350px;
+
+            border-radius: 13px;
+
+            background:
+                rgba(20, 184, 166, 0.06);
+
+            border:
+                1px solid
+                rgba(20, 184, 166, 0.10);
+        }
+
+
+        .secure-title {
+
+            font-size: 12px;
+
+            font-weight: 750;
+
+            margin-bottom: 5px;
+        }
+
+
+        .secure-text {
+
+            color: var(--muted);
+
+            font-size: 10px;
+
+            line-height: 1.6;
+        }
+
+
+        /* =====================================
+           FORM
+        ===================================== */
+
+        .form-section {
+
+            padding: 50px 55px;
+
+            display: flex;
+
+            flex-direction: column;
+
+            justify-content: center;
+        }
+
+
+        .form-heading {
+
+            margin-bottom: 25px;
+        }
+
+
+        .form-heading h2 {
+
+            font-size: 28px;
+
+            letter-spacing: -0.6px;
+
+            margin-bottom: 7px;
+        }
+
+
+        .form-heading p {
+
+            color: var(--muted);
+
+            font-size: 13px;
+        }
+
+
+        /* =====================================
+           FORM
+        ===================================== */
+
+        .form-group {
+
+            margin-bottom: 16px;
+        }
+
+
+        label {
+
+            display: block;
+
+            color: #cbd5e1;
+
+            font-size: 12px;
+
+            font-weight: 700;
+
             margin-bottom: 8px;
         }
 
-        .subtitle {
-            text-align: center;
-            color: #64748b;
-            margin-bottom: 30px;
+
+        .input-wrapper {
+
+            position: relative;
         }
 
-        label {
-            display: block;
-            margin-bottom: 7px;
-            font-weight: bold;
+
+        .input-icon {
+
+            position: absolute;
+
+            left: 14px;
+
+            top: 50%;
+
+            transform: translateY(-50%);
+
+            color: #5f748c;
+
+            font-size: 14px;
         }
+
 
         input,
         select {
+
             width: 100%;
-            padding: 13px;
-            margin-bottom: 20px;
-            border: 1px solid #cbd5e1;
-            border-radius: 7px;
-            font-size: 15px;
+
+            height: 47px;
+
+            padding:
+                0 14px 0 41px;
+
+            background:
+                rgba(7, 17, 31, 0.7);
+
+            border:
+
+                1px solid
+                var(--border);
+
+            border-radius: 10px;
+
+            outline: none;
+
+            color: white;
+
+            font-size: 13px;
+
+            transition: 0.2s ease;
         }
+
+
+        input::placeholder {
+
+            color: #53677d;
+        }
+
 
         input:focus,
         select:focus {
-            outline: none;
-            border-color: #0f766e;
+
+            border-color:
+                var(--primary);
+
+            background:
+                rgba(7, 17, 31, 0.9);
+
+            box-shadow:
+
+                0 0 0 3px
+                rgba(20, 184, 166, 0.08);
         }
 
-        button {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 7px;
-            background: #0f766e;
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
+
+        select {
+
             cursor: pointer;
         }
 
-        button:hover {
-            background: #115e59;
+
+        select option {
+
+            background: #0f1d30;
+
+            color: white;
         }
 
-        .login {
+
+        /* =====================================
+           BUTTON
+        ===================================== */
+
+        .submit-button {
+
+            width: 100%;
+
+            height: 50px;
+
+            margin-top: 5px;
+
+            border: none;
+
+            border-radius: 10px;
+
+            background:
+
+                linear-gradient(
+                    135deg,
+                    var(--primary),
+                    var(--primary-dark)
+                );
+
+            color: white;
+
+            font-size: 13px;
+
+            font-weight: 750;
+
+            cursor: pointer;
+
+            box-shadow:
+
+                0 10px 25px
+                rgba(20, 184, 166, 0.16);
+
+            transition: 0.2s ease;
+        }
+
+
+        .submit-button:hover {
+
+            transform: translateY(-1px);
+
+            box-shadow:
+
+                0 13px 30px
+                rgba(20, 184, 166, 0.25);
+        }
+
+
+        /* =====================================
+           FOOTER
+        ===================================== */
+
+        .form-footer {
+
             text-align: center;
+
             margin-top: 20px;
+
+            color: var(--muted);
+
+            font-size: 12px;
         }
 
-        .login a {
-            color: #0f766e;
-            font-weight: bold;
+
+        .form-footer a {
+
+            color: var(--primary);
+
             text-decoration: none;
+
+            font-weight: 700;
         }
+
+
+        .form-footer a:hover {
+
+            color: #2dd4bf;
+        }
+
+
+        /* =====================================
+           MOBILE
+        ===================================== */
+
+        @media (max-width: 800px) {
+
+            body {
+                padding: 15px;
+            }
+
+
+            .auth-wrapper {
+
+                grid-template-columns: 1fr;
+
+                max-width: 520px;
+
+                min-height: auto;
+            }
+
+
+            .brand-section {
+
+                padding: 35px;
+
+                min-height: 280px;
+            }
+
+
+            .brand-section h1 {
+
+                font-size: 29px;
+            }
+
+
+            .secure-box {
+
+                display: none;
+            }
+
+
+            .form-section {
+
+                padding: 35px;
+            }
+        }
+
+
+        @media (max-width: 450px) {
+
+            .brand-section,
+            .form-section {
+
+                padding: 28px 22px;
+            }
+
+
+            .brand-section h1 {
+
+                font-size: 26px;
+            }
+
+
+            .form-heading h2 {
+
+                font-size: 24px;
+            }
+        }
+
     </style>
+
 </head>
+
 
 <body>
 
-<div class="register-box">
 
-    <div class="logo">🩺 MedTrack</div>
+<div class="auth-wrapper">
 
-    <p class="subtitle">Create your account</p>
 
-    <form action="/register" method="POST">
+    <!-- =========================================
+         BRAND
+    ========================================== -->
 
-        <label for="name">Full Name</label>
-        <input
-            type="text"
-            id="name"
-            name="name"
-            placeholder="Enter your full name"
-            required
+    <section class="brand-section">
+
+
+        <div class="brand-content">
+
+
+            <div class="logo">
+
+                <div class="logo-icon">
+                    🩺
+                </div>
+
+                <div class="logo-name">
+                    MedTrack
+                </div>
+
+            </div>
+
+
+            <h1>
+
+                Start managing your
+                <span>health smarter.</span>
+
+            </h1>
+
+
+            <p class="brand-description">
+
+                Create your MedTrack account and keep your
+                appointments, medical records and healthcare
+                information organized in one secure place.
+
+            </p>
+
+
+            <div class="secure-box">
+
+                <div class="secure-title">
+                    🔐 Your information matters
+                </div>
+
+                <div class="secure-text">
+
+                    MedTrack is designed to keep your
+                    healthcare information organized and
+                    accessible through your account.
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+    </section>
+
+
+    <!-- =========================================
+         REGISTER
+    ========================================== -->
+
+    <section class="form-section">
+
+
+        <div class="form-heading">
+
+            <h2>
+                Create your account
+            </h2>
+
+            <p>
+                Fill in your details to get started.
+            </p>
+
+        </div>
+
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+
+            {% if messages %}
+
+                {% for category, message in messages %}
+
+                    <div
+                        style="
+                        padding:11px;
+                        margin-bottom:16px;
+                        border-radius:9px;
+                        font-size:12px;
+                        color:#fca5a5;
+                        background:rgba(239,68,68,.08);
+                        border:1px solid rgba(239,68,68,.18);
+                        "
+                    >
+
+                        {{ message }}
+
+                    </div>
+
+                {% endfor %}
+
+            {% endif %}
+
+        {% endwith %}
+
+
+        <form
+            method="POST"
+            action="{{ url_for('register') }}"
         >
 
-        <label for="email">Email</label>
-        <input
-            type="email"
-            id="email"
-            name="email"
-            placeholder="Enter your email"
-            required
-        >
 
-        <label for="phone">Phone Number</label>
-        <input
-            type="tel"
-            id="phone"
-            name="phone"
-            placeholder="Enter your phone number"
-            required
-        >
+            <div class="form-group">
 
-        <label for="password">Password</label>
-        <input
-            type="password"
-            id="password"
-            name="password"
-            placeholder="Create a password"
-            required
-        >
+                <label>
+                    Full Name
+                </label>
 
-        <label for="role">Register As</label>
+                <div class="input-wrapper">
 
-        <select id="role" name="role" required>
-            <option value="patient">Patient</option>
-            <option value="doctor">Doctor</option>
-        </select>
+                    <span class="input-icon">
+                        👤
+                    </span>
 
-        <button type="submit">Create Account</button>
+                    <input
+                        type="text"
+                        name="name"
+                        placeholder="Enter your full name"
+                        required
+                    >
 
-    </form>
+                </div>
 
-    <div class="login">
-        Already have an account?
-        <a href="/login">Login</a>
-    </div>
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Email Address
+                </label>
+
+                <div class="input-wrapper">
+
+                    <span class="input-icon">
+                        ✉
+                    </span>
+
+                    <input
+                        type="email"
+                        name="email"
+                        placeholder="you@example.com"
+                        required
+                    >
+
+                </div>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Password
+                </label>
+
+                <div class="input-wrapper">
+
+                    <span class="input-icon">
+                        ●
+                    </span>
+
+                    <input
+                        type="password"
+                        name="password"
+                        placeholder="Create a password"
+                        required
+                    >
+
+                </div>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Account Type
+                </label>
+
+                <div class="input-wrapper">
+
+                    <span class="input-icon">
+                        ◈
+                    </span>
+
+                    <select
+                        name="role"
+                        required
+                    >
+
+                        <option value="patient">
+                            Patient
+                        </option>
+
+                        <option value="doctor">
+                            Doctor
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="submit-button"
+            >
+
+                Create Account
+
+            </button>
+
+
+        </form>
+
+
+        <div class="form-footer">
+
+            Already have an account?
+
+            <a href="{{ url_for('login') }}">
+                Sign in
+            </a>
+
+        </div>
+
+
+    </section>
+
 
 </div>
 
+
 </body>
+
 </html>
