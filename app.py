@@ -184,6 +184,27 @@ def init_database():
         """)
 
 
+
+        # -------------------------------------------------
+        # PRESCRIPTIONS TABLE
+        # -------------------------------------------------
+
+        connection.execute("""
+            CREATE TABLE IF NOT EXISTS prescriptions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                patient_id INTEGER NOT NULL,
+                doctor_id INTEGER NOT NULL,
+                medication_name TEXT NOT NULL,
+                dosage TEXT NOT NULL,
+                frequency TEXT NOT NULL,
+                duration TEXT NOT NULL,
+                instructions TEXT,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY (patient_id) REFERENCES users(id),
+                FOREIGN KEY (doctor_id) REFERENCES users(id)
+            )
+        """)
+
         connection.commit()
 
     finally:
@@ -745,6 +766,22 @@ def dashboard():
 
     try:
 
+        prescriptions = connection.execute(
+            """
+            SELECT prescriptions.*, patients.name AS patient_name,
+                   doctors.name AS doctor_name
+            FROM prescriptions
+            JOIN users AS patients ON prescriptions.patient_id = patients.id
+            JOIN users AS doctors ON prescriptions.doctor_id = doctors.id
+            WHERE prescriptions.patient_id = ?
+               OR prescriptions.doctor_id = ?
+            ORDER BY prescriptions.created_at DESC, prescriptions.id DESC
+            """,
+            (user["id"], user["id"])
+        ).fetchall()
+
+
+
         # =================================================
         # PATIENT DASHBOARD
         # =================================================
@@ -825,6 +862,7 @@ def dashboard():
                 appointments=appointments,
                 records=records,
                 diagnoses=diagnoses,
+                prescriptions=prescriptions,
                 patients=[]
             )
 
@@ -932,12 +970,80 @@ def dashboard():
                 appointments=appointments,
                 records=[],
                 diagnoses=[],
+                prescriptions=prescriptions,
                 patients=patients
             )
 
 
     finally:
 
+        connection.close()
+
+
+# =========================================================
+# APPOINTMENTS PAGE
+# =========================================================
+
+@app.route("/appointments")
+def appointments():
+
+    if not is_logged_in():
+        flash("Please login first.", "error")
+        return redirect(url_for("login"))
+
+    connection = get_db()
+
+    try:
+        doctors = connection.execute(
+            """
+            SELECT id, name, email
+            FROM users
+            WHERE role = 'doctor'
+            ORDER BY name ASC
+            """
+        ).fetchall()
+
+        if session.get("role") == "patient":
+            appointment_list = connection.execute(
+                """
+                SELECT *
+                FROM appointments
+                WHERE patient_id = ?
+                ORDER BY appointment_date ASC, appointment_time ASC
+                """,
+                (session["user_id"],)
+            ).fetchall()
+        else:
+            doctor_name = (session.get("name") or "").strip().lower()
+            appointment_list = connection.execute(
+                """
+                SELECT
+                    appointments.*,
+                    users.name AS patient_name,
+                    users.email AS patient_email
+                FROM appointments
+                JOIN users ON appointments.patient_id = users.id
+                WHERE appointments.doctor_id = ?
+                   OR lower(appointments.doctor_name) = ?
+                ORDER BY appointment_date ASC, appointment_time ASC
+                """,
+                (session["user_id"], doctor_name)
+            ).fetchall()
+
+        return render_template(
+            "appointments.html",
+            user={
+                "id": session.get("user_id"),
+                "name": session.get("name"),
+                "email": session.get("email"),
+                "role": session.get("role")
+            },
+            doctors=doctors,
+            appointments=appointment_list,
+            now_date=datetime.now().strftime("%Y-%m-%d")
+        )
+
+    finally:
         connection.close()
 
 
@@ -951,170 +1057,89 @@ def dashboard():
 )
 def book_appointment():
 
-    # -----------------------------------------------------
-    # LOGIN CHECK
-    # -----------------------------------------------------
-
     if not is_logged_in():
-
-        flash(
-            "Please login first.",
-            "error"
-        )
-
-        return redirect(
-            url_for("login")
-        )
-
-
-    # -----------------------------------------------------
-    # ONLY PATIENT CAN BOOK
-    # -----------------------------------------------------
+        flash("Please login first.", "error")
+        return redirect(url_for("login"))
 
     if session.get("role") != "patient":
+        flash("Only patients can book appointments.", "error")
+        return redirect(url_for("appointments"))
 
-        flash(
-            "Only patients can book appointments.",
-            "error"
-        )
+    doctor_id_raw = request.form.get("doctor_id", "").strip()
+    doctor_name = request.form.get("doctor_name", "").strip()
+    department = request.form.get("department", "").strip()
+    appointment_date = request.form.get("appointment_date", "").strip()
+    appointment_time = request.form.get("appointment_time", "").strip()
 
-        return redirect(
-            url_for("dashboard")
-        )
-
-
-    # -----------------------------------------------------
-    # FORM DATA
-    # -----------------------------------------------------
-
-    doctor_name = request.form.get(
-        "doctor_name",
-        ""
-    ).strip()
-
-
-    department = request.form.get(
-        "department",
-        ""
-    ).strip()
-
-
-    appointment_date = request.form.get(
-        "appointment_date",
-        ""
-    ).strip()
-
-
-    appointment_time = request.form.get(
-        "appointment_time",
-        ""
-    ).strip()
-
-
-    # -----------------------------------------------------
-    # VALIDATION
-    # -----------------------------------------------------
-
-    if (
-        not doctor_name
-        or not department
-        or not appointment_date
-        or not appointment_time
-    ):
-
-        flash(
-            "Please fill in all appointment details.",
-            "error"
-        )
-
-        return redirect(
-            url_for("dashboard")
-        )
-
-
-    # -----------------------------------------------------
-    # DATE VALIDATION
-    # -----------------------------------------------------
+    if not department or not appointment_date or not appointment_time:
+        flash("Please fill in all appointment details.", "error")
+        return redirect(url_for("appointments"))
 
     try:
-
-        selected_date = datetime.strptime(
-            appointment_date,
-            "%Y-%m-%d"
-        ).date()
-
-
-        today = datetime.now().date()
-
-
-        if selected_date < today:
-
-            flash(
-                "Appointment date cannot be in the past.",
-                "error"
-            )
-
-            return redirect(
-                url_for("dashboard")
-            )
-
+        selected_date = datetime.strptime(appointment_date, "%Y-%m-%d").date()
+        selected_time = datetime.strptime(appointment_time, "%H:%M").time()
     except ValueError:
+        flash("Please enter a valid appointment date and time.", "error")
+        return redirect(url_for("appointments"))
 
-        flash(
-            "Invalid appointment date.",
-            "error"
-        )
-
-        return redirect(
-            url_for("dashboard")
-        )
-
-
-    # -----------------------------------------------------
-    # TRY TO FIND DOCTOR ACCOUNT
-    # -----------------------------------------------------
+    now = datetime.now()
+    if selected_date < now.date() or (selected_date == now.date() and selected_time <= now.time()):
+        flash("Appointment must be scheduled for a future date and time.", "error")
+        return redirect(url_for("appointments"))
 
     connection = get_db()
 
     try:
+        doctor = None
 
-        doctor = connection.execute(
+        if doctor_id_raw.isdigit():
+            doctor = connection.execute(
+                """
+                SELECT id, name
+                FROM users
+                WHERE id = ? AND role = 'doctor'
+                """,
+                (int(doctor_id_raw),)
+            ).fetchone()
+
+        if doctor is None and doctor_name:
+            doctor = connection.execute(
+                """
+                SELECT id, name
+                FROM users
+                WHERE role = 'doctor' AND lower(name) = ?
+                """,
+                (doctor_name.lower(),)
+            ).fetchone()
+
+        if doctor is None:
+            flash("Please select a valid doctor.", "error")
+            return redirect(url_for("appointments"))
+
+        doctor_id = doctor["id"]
+        doctor_name = doctor["name"]
+
+        existing = connection.execute(
             """
             SELECT id
-            FROM users
-            WHERE role = 'doctor'
-            AND lower(name) = ?
+            FROM appointments
+            WHERE doctor_id = ?
+              AND appointment_date = ?
+              AND appointment_time = ?
+              AND status NOT IN ('Cancelled', 'Completed')
+            LIMIT 1
             """,
-            (
-                doctor_name.lower(),
-            )
+            (doctor_id, appointment_date, appointment_time)
         ).fetchone()
 
-
-        doctor_id = None
-
-        if doctor:
-
-            doctor_id = doctor["id"]
-
-
-        # -------------------------------------------------
-        # CREATE APPOINTMENT
-        # -------------------------------------------------
+        if existing:
+            flash("That time slot is already booked. Please choose another time.", "error")
+            return redirect(url_for("appointments"))
 
         connection.execute(
             """
             INSERT INTO appointments
-            (
-                patient_id,
-                doctor_id,
-                doctor_name,
-                appointment_date,
-                appointment_time,
-                department,
-                status,
-                created_at
-            )
+            (patient_id, doctor_id, doctor_name, appointment_date, appointment_time, department, status, created_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
@@ -1125,34 +1150,443 @@ def book_appointment():
                 appointment_time,
                 department,
                 "Confirmed",
-                datetime.now().strftime(
-                    "%Y-%m-%d %H:%M:%S"
-                )
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             )
         )
-
-
         connection.commit()
 
-
     finally:
-
         connection.close()
 
+    flash("Appointment booked successfully!", "success")
+    return redirect(url_for("appointments"))
 
-    # -----------------------------------------------------
-    # SUCCESS
-    # -----------------------------------------------------
 
-    flash(
-        "Appointment booked successfully!",
-        "success"
+# =========================================================
+# CANCEL APPOINTMENT
+# =========================================================
+
+@app.route("/appointments/cancel/<int:appointment_id>", methods=["POST"])
+def cancel_appointment(appointment_id):
+
+    if not is_logged_in():
+        flash("Please login first.", "error")
+        return redirect(url_for("login"))
+
+    connection = get_db()
+
+    try:
+        appointment = connection.execute(
+            "SELECT * FROM appointments WHERE id = ?",
+            (appointment_id,)
+        ).fetchone()
+
+        if appointment is None:
+            flash("Appointment not found.", "error")
+            return redirect(url_for("appointments"))
+
+        allowed = (
+            session.get("role") == "patient"
+            and appointment["patient_id"] == session.get("user_id")
+        )
+
+        if not allowed:
+            flash("You are not allowed to cancel this appointment.", "error")
+            return redirect(url_for("appointments"))
+
+        if appointment["status"] in ("Cancelled", "Completed"):
+            flash("This appointment can no longer be cancelled.", "error")
+            return redirect(url_for("appointments"))
+
+        connection.execute(
+            "UPDATE appointments SET status = 'Cancelled' WHERE id = ?",
+            (appointment_id,)
+        )
+        connection.commit()
+
+    finally:
+        connection.close()
+
+    flash("Appointment cancelled successfully.", "success")
+    return redirect(url_for("appointments"))
+
+
+# =========================================================
+# UPDATE APPOINTMENT STATUS - DOCTOR
+# =========================================================
+
+@app.route("/appointments/status/<int:appointment_id>", methods=["POST"])
+def update_appointment_status(appointment_id):
+
+    if not is_logged_in():
+        flash("Please login first.", "error")
+        return redirect(url_for("login"))
+
+    if session.get("role") != "doctor":
+        flash("Only doctors can update appointment status.", "error")
+        return redirect(url_for("appointments"))
+
+    new_status = request.form.get("status", "").strip()
+    if new_status not in {"Confirmed", "Completed", "Cancelled"}:
+        flash("Invalid appointment status.", "error")
+        return redirect(url_for("appointments"))
+
+    connection = get_db()
+
+    try:
+        appointment = connection.execute(
+            """
+            SELECT id
+            FROM appointments
+            WHERE id = ?
+              AND (doctor_id = ? OR lower(doctor_name) = ?)
+            """,
+            (appointment_id, session["user_id"], (session.get("name") or "").strip().lower())
+        ).fetchone()
+
+        if appointment is None:
+            flash("Appointment not found or access denied.", "error")
+            return redirect(url_for("appointments"))
+
+        connection.execute(
+            "UPDATE appointments SET status = ? WHERE id = ?",
+            (new_status, appointment_id)
+        )
+        connection.commit()
+
+    finally:
+        connection.close()
+
+    flash("Appointment status updated.", "success")
+    return redirect(url_for("appointments"))
+
+
+# =========================================================
+# MEDICAL RECORDS
+# =========================================================
+
+@app.route("/medical-records")
+def medical_records():
+
+    if not is_logged_in():
+        flash("Please login first.", "error")
+        return redirect(url_for("login"))
+
+    connection = get_db()
+
+    try:
+        user_id = session["user_id"]
+        role = session.get("role")
+
+        if role == "patient":
+            records = connection.execute(
+                '''
+                SELECT id, patient_id, title, details, created_at
+                FROM medical_records
+                WHERE patient_id = ?
+                ORDER BY created_at DESC, id DESC
+                ''',
+                (user_id,)
+            ).fetchall()
+        else:
+            records = connection.execute(
+                '''
+                SELECT DISTINCT
+                    medical_records.id,
+                    medical_records.patient_id,
+                    medical_records.title,
+                    medical_records.details,
+                    medical_records.created_at
+                FROM medical_records
+                JOIN appointments
+                    ON appointments.patient_id = medical_records.patient_id
+                WHERE appointments.doctor_id = ?
+                   OR lower(appointments.doctor_name) = lower(?)
+                ORDER BY medical_records.created_at DESC, medical_records.id DESC
+                ''',
+                (user_id, session.get("name", "").strip())
+            ).fetchall()
+    finally:
+        connection.close()
+
+    user = {
+        "id": session.get("user_id"),
+        "name": session.get("name"),
+        "email": session.get("email"),
+        "role": session.get("role")
+    }
+
+    return render_template(
+        "medical_records.html",
+        user=user,
+        records=records
     )
 
 
-    return redirect(
-        url_for("dashboard")
+@app.route("/medical-records/add", methods=["POST"])
+def add_medical_record():
+
+    if not is_logged_in():
+        flash("Please login first.", "error")
+        return redirect(url_for("login"))
+
+    if session.get("role") != "patient":
+        flash("Only patients can add medical records.", "error")
+        return redirect(url_for("medical_records"))
+
+    title = request.form.get("title", "").strip()
+    details = request.form.get("details", "").strip()
+
+    if not title:
+        flash("Please enter a record title.", "error")
+        return redirect(url_for("medical_records"))
+
+    if len(title) > 120:
+        flash("Record title is too long.", "error")
+        return redirect(url_for("medical_records"))
+
+    connection = get_db()
+
+    try:
+        connection.execute(
+            '''
+            INSERT INTO medical_records
+            (patient_id, title, details, created_at)
+            VALUES (?, ?, ?, ?)
+            ''',
+            (
+                session["user_id"],
+                title,
+                details,
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            )
+        )
+        connection.commit()
+    finally:
+        connection.close()
+
+    flash("Medical record added successfully.", "success")
+    return redirect(url_for("medical_records"))
+
+
+@app.route("/medical-records/delete/<int:record_id>", methods=["POST"])
+def delete_medical_record(record_id):
+
+    if not is_logged_in():
+        flash("Please login first.", "error")
+        return redirect(url_for("login"))
+
+    if session.get("role") != "patient":
+        flash("Only patients can delete their medical records.", "error")
+        return redirect(url_for("medical_records"))
+
+    connection = get_db()
+
+    try:
+        record = connection.execute(
+            '''
+            SELECT id
+            FROM medical_records
+            WHERE id = ? AND patient_id = ?
+            ''',
+            (record_id, session["user_id"])
+        ).fetchone()
+
+        if record is None:
+            flash("Medical record not found.", "error")
+            return redirect(url_for("medical_records"))
+
+        connection.execute(
+            "DELETE FROM medical_records WHERE id = ? AND patient_id = ?",
+            (record_id, session["user_id"])
+        )
+        connection.commit()
+    finally:
+        connection.close()
+
+    flash("Medical record deleted.", "success")
+    return redirect(url_for("medical_records"))
+
+
+# =========================================================
+# PRESCRIPTIONS
+# =========================================================
+
+@app.route("/prescriptions")
+def prescriptions():
+
+    if not is_logged_in():
+        flash("Please login first.", "error")
+        return redirect(url_for("login"))
+
+    connection = get_db()
+
+    try:
+        user_id = session["user_id"]
+        role = session.get("role")
+
+        if role == "doctor":
+            prescription_rows = connection.execute(
+                """
+                SELECT prescriptions.*, patients.name AS patient_name,
+                       doctors.name AS doctor_name
+                FROM prescriptions
+                JOIN users AS patients ON prescriptions.patient_id = patients.id
+                JOIN users AS doctors ON prescriptions.doctor_id = doctors.id
+                WHERE prescriptions.doctor_id = ?
+                ORDER BY prescriptions.created_at DESC, prescriptions.id DESC
+                """,
+                (user_id,)
+            ).fetchall()
+
+            patients = connection.execute(
+                """
+                SELECT DISTINCT users.id, users.name, users.email
+                FROM users
+                JOIN appointments ON appointments.patient_id = users.id
+                WHERE users.role = 'patient'
+                  AND (appointments.doctor_id = ?
+                       OR lower(appointments.doctor_name) = lower(?))
+                ORDER BY users.name ASC
+                """,
+                (user_id, session.get("name", "").strip())
+            ).fetchall()
+        else:
+            prescription_rows = connection.execute(
+                """
+                SELECT prescriptions.*, patients.name AS patient_name,
+                       doctors.name AS doctor_name
+                FROM prescriptions
+                JOIN users AS patients ON prescriptions.patient_id = patients.id
+                JOIN users AS doctors ON prescriptions.doctor_id = doctors.id
+                WHERE prescriptions.patient_id = ?
+                ORDER BY prescriptions.created_at DESC, prescriptions.id DESC
+                """,
+                (user_id,)
+            ).fetchall()
+            patients = []
+
+    finally:
+        connection.close()
+
+    user = {
+        "id": session.get("user_id"),
+        "name": session.get("name"),
+        "email": session.get("email"),
+        "role": session.get("role")
+    }
+
+    return render_template(
+        "prescriptions.html",
+        user=user,
+        prescriptions=prescription_rows,
+        patients=patients
     )
+
+
+@app.route("/prescriptions/add", methods=["POST"])
+def add_prescription():
+
+    if not is_logged_in():
+        flash("Please login first.", "error")
+        return redirect(url_for("login"))
+
+    if session.get("role") != "doctor":
+        flash("Only doctors can issue prescriptions.", "error")
+        return redirect(url_for("prescriptions"))
+
+    patient_id = request.form.get("patient_id", "").strip()
+    medication_name = request.form.get("medication_name", "").strip()
+    dosage = request.form.get("dosage", "").strip()
+    frequency = request.form.get("frequency", "").strip()
+    duration = request.form.get("duration", "").strip()
+    instructions = request.form.get("instructions", "").strip()
+
+    if not all([patient_id, medication_name, dosage, frequency, duration]):
+        flash("Please fill in all required prescription details.", "error")
+        return redirect(url_for("prescriptions"))
+
+    try:
+        patient_id = int(patient_id)
+    except ValueError:
+        flash("Invalid patient.", "error")
+        return redirect(url_for("prescriptions"))
+
+    connection = get_db()
+
+    try:
+        patient = connection.execute(
+            "SELECT id FROM users WHERE id = ? AND role = 'patient'",
+            (patient_id,)
+        ).fetchone()
+
+        if patient is None:
+            flash("Patient not found.", "error")
+            return redirect(url_for("prescriptions"))
+
+        appointment = connection.execute(
+            """
+            SELECT id FROM appointments
+            WHERE patient_id = ?
+              AND (doctor_id = ? OR lower(doctor_name) = lower(?))
+            LIMIT 1
+            """,
+            (patient_id, session["user_id"], session.get("name", "").strip())
+        ).fetchone()
+
+        if appointment is None:
+            flash("You can issue a prescription only to one of your patients.", "error")
+            return redirect(url_for("prescriptions"))
+
+        connection.execute(
+            """
+            INSERT INTO prescriptions
+            (patient_id, doctor_id, medication_name, dosage, frequency,
+             duration, instructions, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                patient_id, session["user_id"], medication_name, dosage,
+                frequency, duration, instructions,
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            )
+        )
+        connection.commit()
+
+    finally:
+        connection.close()
+
+    flash("Prescription issued successfully.", "success")
+    return redirect(url_for("prescriptions"))
+
+
+@app.route("/prescriptions/delete/<int:prescription_id>", methods=["POST"])
+def delete_prescription(prescription_id):
+
+    if not is_logged_in():
+        flash("Please login first.", "error")
+        return redirect(url_for("login"))
+
+    if session.get("role") != "doctor":
+        flash("Only doctors can delete prescriptions.", "error")
+        return redirect(url_for("prescriptions"))
+
+    connection = get_db()
+
+    try:
+        result = connection.execute(
+            "DELETE FROM prescriptions WHERE id = ? AND doctor_id = ?",
+            (prescription_id, session["user_id"])
+        )
+        if result.rowcount == 0:
+            flash("Prescription not found.", "error")
+        else:
+            connection.commit()
+            flash("Prescription deleted.", "success")
+    finally:
+        connection.close()
+
+    return redirect(url_for("prescriptions"))
 
 
 # =========================================================
@@ -1214,6 +1648,24 @@ def profile():
             (session["user_id"],)
         ).fetchone()
 
+        prescriptions = connection.execute(
+            """
+            SELECT
+                prescriptions.*,
+                patients.name AS patient_name,
+                doctors.name AS doctor_name
+            FROM prescriptions
+            JOIN users AS patients
+                ON prescriptions.patient_id = patients.id
+            JOIN users AS doctors
+                ON prescriptions.doctor_id = doctors.id
+            WHERE prescriptions.patient_id = ?
+               OR prescriptions.doctor_id = ?
+            ORDER BY prescriptions.created_at DESC, prescriptions.id DESC
+            """,
+            (session["user_id"], session["user_id"])
+        ).fetchall()
+
 
     finally:
 
@@ -1246,6 +1698,7 @@ def profile():
         appointments=[],
         records=[],
         diagnoses=[],
+        prescriptions=prescriptions,
         patients=[]
     )
 

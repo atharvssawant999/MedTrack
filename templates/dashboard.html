@@ -1137,7 +1137,7 @@
 
 
             <a
-                href="#appointments"
+                href="{{ url_for('appointments') }}"
                 class="nav-item"
             >
                 <span class="nav-icon">◷</span>
@@ -1146,7 +1146,7 @@
 
 
             <a
-                href="#records"
+                href="{{ url_for('medical_records') }}"
                 class="nav-item"
             >
                 <span class="nav-icon">▤</span>
@@ -1155,7 +1155,7 @@
 
 
             <a
-                href="#prescriptions"
+                href="{{ url_for('prescriptions') }}"
                 class="nav-item"
             >
                 <span class="nav-icon">♡</span>
@@ -1377,7 +1377,7 @@
                     </div>
 
                     <a
-                        href="#"
+                        href="{{ url_for('appointments') }}"
                         class="view-all"
                     >
                         View all
@@ -1403,11 +1403,11 @@
                                 <div class="appointment-info">
 
                                     <div class="doctor-name">
-                                        {{ appointment.doctor }}
+                                        {{ appointment.doctor_name }}
                                     </div>
 
                                     <div class="appointment-date">
-                                        {{ appointment.date }}
+                                        {{ appointment.appointment_date }} • {{ appointment.appointment_time }}
                                     </div>
 
                                 </div>
@@ -1471,7 +1471,7 @@
 
 
                         <a
-                            href="#"
+                            href="{{ url_for('appointments') }}"
                             class="action"
                         >
 
@@ -1491,7 +1491,7 @@
 
 
                         <a
-                            href="#records"
+                            href="{{ url_for('medical_records') }}"
                             class="action"
                         >
 
@@ -1511,7 +1511,7 @@
 
 
                         <a
-                            href="#prescriptions"
+                            href="{{ url_for('prescriptions') }}"
                             class="action"
                         >
 
@@ -1531,7 +1531,7 @@
 
 
                         <a
-                            href="#"
+                            href="{{ url_for('profile') }}"
                             class="action"
                         >
 
@@ -1587,7 +1587,7 @@
                     </div>
 
                     <a
-                        href="#"
+                        href="{{ url_for('medical_records') }}"
                         class="view-all"
                     >
                         View all
@@ -1617,7 +1617,7 @@
                                     </div>
 
                                     <div class="record-date">
-                                        {{ record.date }}
+                                        {{ record.created_at }}
                                     </div>
 
                                 </div>
@@ -1670,7 +1670,7 @@
                     </div>
 
                     <a
-                        href="#"
+                        href="{{ url_for('prescriptions') }}"
                         class="view-all"
                     >
                         View all
@@ -1689,12 +1689,23 @@
                             <div class="prescription">
 
                                 <div class="prescription-name">
-                                    {{ prescription.name }}
+                                    {{ prescription.medication_name }}
                                 </div>
 
                                 <div class="prescription-details">
-                                    {{ prescription.details }}
+                                    <strong>Dosage:</strong> {{ prescription.dosage }}
+                                    &nbsp; • &nbsp;
+                                    <strong>Frequency:</strong> {{ prescription.frequency }}
+                                    &nbsp; • &nbsp;
+                                    <strong>Duration:</strong> {{ prescription.duration }}
                                 </div>
+
+                                {% if prescription.instructions %}
+                                    <div class="prescription-details">
+                                        <strong>Instructions:</strong>
+                                        {{ prescription.instructions }}
+                                    </div>
+                                {% endif %}
 
                             </div>
 
